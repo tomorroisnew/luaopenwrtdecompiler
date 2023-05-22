@@ -1,6 +1,7 @@
 from Modules.Buffer import Buffer
 from Modules.Header import Header
 from Modules.Chunks import Chunks
+from Modules.Disassembler import Disassembler
 
 import pprint
 
@@ -32,4 +33,6 @@ def recursive_vars(obj):
 
 x = LuaByteCodeDecompiler('domain_redirect.lua')
 x.parse()
-pprint.pprint(vars(x.Chunks.ConstantsList[0]))
+
+d = Disassembler(x.Chunks)
+d.analyze()
