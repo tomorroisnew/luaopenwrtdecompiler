@@ -6,7 +6,7 @@ class LuaByteCodeDecompiler:
     def __init__(self, fileName) -> None:
         self.buffer = bytearray(open(fileName, 'rb').read())
         self.currentOffset = 0
-        self.isTopLevelFunctionRead = True
+        self.isTopLevelFunctionRead = False
         self.process()
 
     def readBytes(self, num=1):
@@ -59,20 +59,31 @@ class LuaByteCodeDecompiler:
         data['is_vararg'] = vararg_mapping.get(self.readByte()) # is_vararg flag: 1 byte
         data['Max Stack Size'] = self.readByte()
 
-        #data['instructions'] = self.readInstructionList()
-        self.readInstructionsList()
-        #data['Constants List'] = self.readConstantsList()
-        self.readConstantsList()
-        self.readFunctionPrototypesList()
+        data['Instruction List'] = self.readInstructionsList()
+        data['Constants List'] = self.readConstantsList()
+        data['Function Prototype List'] = self.readFunctionPrototypesList()
+        data['Source Line Positions List'] = self.readSourceLinePositionsList()
+        data['Local Variable List'] = self.readLocalList()
+        data['Upvalue List'] = self.readUpvalueList()
+        
 
     def readString(self):
         #print(self.sizes['size_t'])
         size_t = int.from_bytes(self.readBytes(self.sizes['size_t']), byteorder=self.headers['Endianness'], signed=False)
+        print(size_t)
         #print(size_t)
-        return self.readBytes(size_t).decode()
+        string = self.readBytes(size_t)
+        try:
+            data = string.decode()
+        except:
+            data = string
+
+        print(data)
+
+        return data
     
     def readInt(self):
-        return int.from_bytes(self.readBytes(self.sizes['int']), byteorder='little', signed=False)
+        return int.from_bytes(self.readBytes(self.sizes['int']), byteorder=self.headers['Endianness'], signed=False)
     
     def process(self):
         self.readHeader()
@@ -123,6 +134,7 @@ class LuaByteCodeDecompiler:
         functions = []
 
         for i in range(1, size + 1):
+            print(i)
             functions.append(self.readFunctionPrototype())
 
         pp.pprint(functions)
@@ -136,15 +148,9 @@ class LuaByteCodeDecompiler:
         }
         
         data = {}
-
-        if(not self.isTopLevelFunctionRead):
-            print("LOL")
-            data['Source Name'] = self.readString() # Source Name: String
-            print(data['Source Name'])
-            self.isTopLevelFunctionRead = True
-        else:
-            pass
-            #data['Source Name'] = self.readBytes(self.sizes['size_t'])
+        
+        
+        data['Source Name'] = self.readString()
         data['Line Defined'] = self.readInt() # Line Defined: Integer
         data['Last Line Defined'] = self.readInt() # Last Line Defined: Integer
         data['Num of upvalues'] = self.readByte() # Number of Upvalues: 1 byte
@@ -152,7 +158,57 @@ class LuaByteCodeDecompiler:
         data['is_vararg'] = vararg_mapping.get(self.readByte()) # is_vararg flag: 1 byte
         data['Max Stack Size'] = self.readByte()
 
+        """
+        YUNG MGA FUNCTION PROTOTYPE, MAY GANITO RIN. RECURSIVE YUNG READFUNCTIONPROTOTYPELIST
+        """
+        data['Instruction List'] = self.readInstructionsList()
+        data['Constants List'] = self.readConstantsList()
+        data['Function Prototype List'] = self.readFunctionPrototypesList()
+        data['Source Line Positions List'] = self.readSourceLinePositionsList()
+        data['Local Variable List'] = self.readLocalList()
+        data['Upvalue List'] = self.readUpvalueList()
+
+        return data
+    
+    def readSourceLinePositionsList(self):
+        data = []
+
+        size = self.readInt()
+        print("tite maliit:" + str(size))
+
+        for i in range(1, size + 1):
+            data.append(self.readInt())
+        for i in data:
+            print("TITE: " + str(data))
+        return data
+    
+    def readLocalList(self):
+        data = []
+
+        size = self.readInt()
+
+        for i in range(1, size + 1):
+            data.append(self.readLocalVariable())
+
         return data
 
-decompiler = LuaByteCodeDecompiler('domain_redirect.lua')
+    def readLocalVariable(self):
+        data = {}
+
+        data['varname'] = self.readString()
+        data['startpc'] = self.readInt()
+        data['endpc'] = self.readInt()
+
+        return data
+    
+    def readUpvalueList(self):
+        data = []
+
+        size = self.readInt()
+
+        for i in range(1, size + 1):
+            data.append(self.readString())
+
+
+decompiler = LuaByteCodeDecompiler('ip.lua')
 #print(decompiler.)
