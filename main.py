@@ -31,8 +31,12 @@ def recursive_vars(obj):
             result[attr] = val
     return result
 
-x = LuaByteCodeDecompiler('domain_redirect.lua')
+x = LuaByteCodeDecompiler('ip.lua')
 x.parse()
 
-d = Disassembler(x.Chunks)
+endianness = x.Header.Endianness
+
+print(endianness)
+
+d = Disassembler(x.Chunks, x.Header)
 d.analyze()

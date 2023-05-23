@@ -25,3 +25,4 @@ class Buffer:
     
     def readInt(self):
         return int.from_bytes(self.readBytes(self.sizes.int), byteorder=self.Header.Endianness, signed=False)
+    

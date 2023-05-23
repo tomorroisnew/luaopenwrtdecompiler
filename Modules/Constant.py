@@ -5,7 +5,7 @@ class ConstantsList(List):
     def __init__(self, buffer: Buffer) -> None:
         self.buffer = buffer
 
-        self.List = []
+        self.List: Buffer = []
 
         self.parseConstantList()
 

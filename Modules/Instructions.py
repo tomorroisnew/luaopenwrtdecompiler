@@ -14,4 +14,3 @@ class InstructionsLIst(List):
 
         for i in range(1, size + 1):
             self.List.append(self.buffer.readBytes(4))
-            
